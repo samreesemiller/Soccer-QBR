@@ -1,10 +1,10 @@
-from src.data_loader import load_and_prepare
-from src.features import prepare_features, prepare_combinations
-from src.model import train_model, predict_combinations
-from src.visualize import plot_all
+from data_loader import load_and_prepare
+from features import prepare_features, prepare_combinations
+from model import train_model, predict_combinations
+from visualize import plot_all
 import pandas as pd
 
-filepath = 'data/PassModel.xlsx'
+filepath = 'data\PassModel.xlsx'
 
 passes, combinations = load_and_prepare(filepath)
 X, y = prepare_features(passes)
