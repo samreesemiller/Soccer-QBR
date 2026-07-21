@@ -1,4 +1,44 @@
-# ── 1. Feature importance ──────────────────────────────────────────────────
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import seaborn as sns
+
+PITCH_GREEN  = "#2d5a1b"
+PITCH_LINE   = "#ffffff"
+ACCENT       = "#00e676"
+HEAT_PALETTE = "RdYlGn"
+
+plt.rcParams.update({
+    "figure.facecolor": "#1a1a2e",
+    "axes.facecolor":   "#1a1a2e",
+    "axes.edgecolor":   "#444",
+    "text.color":       "#f0f0f0",
+    "axes.labelcolor":  "#f0f0f0",
+    "xtick.color":      "#aaa",
+    "ytick.color":      "#aaa",
+    "axes.titlecolor":  "#f0f0f0",
+    "grid.color":       "#333",
+    "font.family":      "monospace",
+})
+ 
+REVERSE_ENCODINGS = {
+    "Direction": {2: "Forward", 1: "Neutral", 0: "Back"},
+    "Area":      {2: "Attack",  1: "Mid",     0: "Defense"},
+    "Body Pt":   {0: "Foot",    1: "Head",    2: "Body"},
+    "Foot":      {1: "Strong",  0: "Weak"},
+    "Thru":      {1: "Yes",     0: "No"},
+    "Air":       {1: "Yes",     0: "No"},
+    "Cross":     {1: "Yes",     0: "No"},
+}
+ 
+def _decode(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    for col, mapping in REVERSE_ENCODINGS.items():
+        if col in df.columns:
+            df[col] = df[col].map(mapping)
+    return df
+
 def plot_feature_importance(model, feature_cols: list, save_path: str = None):
     importances = pd.Series(model.feature_importances_, index=feature_cols)
     importances = importances.sort_values()
@@ -22,8 +62,6 @@ def plot_feature_importance(model, feature_cols: list, save_path: str = None):
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.show()
  
- 
-# ── 2. Success rate by Area (pitch zone) ──────────────────────────────────
 def plot_success_by_zone(combinations: pd.DataFrame, save_path: str = None):
     df = _decode(combinations.copy())
     zone_order = ["Defense", "Mid", "Attack"]
@@ -50,7 +88,6 @@ def plot_success_by_zone(combinations: pd.DataFrame, save_path: str = None):
     plt.show()
  
  
-# ── 3. Heatmap — Distance × Direction ────────────────────────────────────
 def plot_heatmap_distance_direction(combinations: pd.DataFrame, save_path: str = None):
     df = _decode(combinations.copy())
     pivot = df.pivot_table(
@@ -78,7 +115,6 @@ def plot_heatmap_distance_direction(combinations: pd.DataFrame, save_path: str =
     plt.show()
  
  
-# ── 4. Defenders vs success ───────────────────────────────────────────────
 def plot_defenders_impact(combinations: pd.DataFrame, save_path: str = None):
     avg = (combinations.groupby("Min. Def.")["predicted_success_prob"]
                        .mean())
@@ -102,7 +138,6 @@ def plot_defenders_impact(combinations: pd.DataFrame, save_path: str = None):
     plt.show()
  
  
-# ── 5. Pitch zone map ─────────────────────────────────────────────────────
 def plot_pitch_zone_map(combinations: pd.DataFrame, save_path: str = None):
     df = _decode(combinations.copy())
     zone_prob = df.groupby("Area")["predicted_success_prob"].mean().to_dict()
@@ -155,7 +190,6 @@ def plot_pitch_zone_map(combinations: pd.DataFrame, save_path: str = None):
     plt.show()
  
  
-# ── 6. All plots at once ──────────────────────────────────────────────────
 def plot_all(model, feature_cols: list, combinations: pd.DataFrame, save_dir: str = None):
     """Run all visualizations in one call."""
     def path(name):
